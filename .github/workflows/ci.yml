@@ -1,0 +1,56 @@
+name: example-basic
+on: [push]
+env:
+  DATABASE_URL: postgres://postgres:now3ef239vlkn@localhost:5432/postgres
+  SESSION_SECRET: werviu239823
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Use Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 16
+          cache: "npm"
+          cache-dependency-path: "**/package-lock.json"
+
+      - name: Spawn database
+        run: docker run -d -p 5432:5432 -e POSTGRES_DB=postgres -e POSTGRES_USER=postgres -e POSTGRES_PASSWORD=now3ef239vlkn postgres
+
+      - name: Install server dependencies
+        working-directory: server
+        run: npm install
+
+      - name: Seed database
+        working-directory: server
+        run: npm run seed
+
+      - name: Start server in the background
+        working-directory: server
+        run: npm run dev &
+
+      - name: Cypress
+        uses: cypress-io/github-action@v2
+        with:
+          working-directory: client
+          env: PORT=3000
+          start: npm run start
+          wait-on: "http://localhost:3000/"
+          wait-on-timeout: 60
+
+      - name: Save screenshots
+        uses: actions/upload-artifact@v2
+        if: always()
+        with:
+          name: cypress-screenshots
+          path: client/cypress/screenshots
+
+      - name: Save videos
+        uses: actions/upload-artifact@v2
+        if: always()
+        with:
+          name: cypress-videos
+          path: client/cypress/videos
