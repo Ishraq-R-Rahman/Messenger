@@ -84,16 +84,16 @@ const Home = ({ user, logout }) => {
   const addNewConvo = useCallback(
     (recipientId, message) => {
       /** ===== Preventing mutation of conversation ===== */
-      const tempConvo = [...conversations];
+      const conversationsCopy = [...conversations];
 
-      tempConvo.forEach((convo) => {
+      conversationsCopy.forEach((convo) => {
         if (convo.otherUser.id === recipientId) {
           convo.messages.push(message);
           convo.latestMessageText = message.text;
           convo.id = message.conversationId;
         }
       });
-      setConversations(tempConvo);
+      setConversations(conversationsCopy);
     },
     [setConversations, conversations]
   );
@@ -113,15 +113,15 @@ const Home = ({ user, logout }) => {
       }
 
       /** ===== Preventing mutation of conversation ===== */
-      const tempConvo = [...conversations];
+      const conversationsCopy = [...conversations];
 
-      tempConvo.forEach((convo) => {
+      conversationsCopy.forEach((convo) => {
         if (convo.id === message.conversationId) { 
           convo.messages.push(message);
           convo.latestMessageText = message.text;
         }
       });
-      setConversations(tempConvo);
+      setConversations(conversationsCopy);
     },
     [setConversations, conversations]
   );
