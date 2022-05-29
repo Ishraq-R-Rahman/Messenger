@@ -29,7 +29,10 @@ const server = http.createServer(app);
  * Listen on provided port, on all network interfaces, and sync database.
  */
 
+/** ===== Might need to add cors =====  */
 const io = require("socket.io")(server);
+
+
 
 io.on("connection", (socket) => {
   socket.on("go-online", (id) => {
