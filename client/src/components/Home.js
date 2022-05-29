@@ -116,7 +116,7 @@ const Home = ({ user, logout }) => {
       const tempConvo = [...conversations];
 
       tempConvo.forEach((convo) => {
-        if (convo.id === message.conversationId) {          
+        if (convo.id === message.conversationId) { 
           convo.messages.push(message);
           convo.latestMessageText = message.text;
         }
