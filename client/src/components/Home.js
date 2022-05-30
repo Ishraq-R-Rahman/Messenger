@@ -78,11 +78,20 @@ const Home = ({ user, logout }) => {
     }
   };
 
+  /** This function sorts the current conversation state based on their last text */
+  const sortConversations = (convesationList) => {
+    return convesationList.sort((a, b) => {
+      return (
+        new Date(b.messages[b.messages.length - 1].createdAt) -
+        new Date(a.messages[a.messages.length - 1].createdAt)
+      );
+    });
+  };
+
   const addNewConvo = useCallback(
     (recipientId, message) => {
-
-      setConversations((prev) =>
-        prev.map((convo) => {
+      setConversations((prev) => {
+        let currentConversations = prev.map((convo) => {
           if (convo.otherUser.id === recipientId) {
             const convoCopy = { ...convo };
             convoCopy.messages = [...convoCopy.messages, message];
@@ -93,8 +102,13 @@ const Home = ({ user, logout }) => {
           } else {
             return convo;
           }
-        })
-      );
+        });
+
+
+        currentConversations = sortConversations( currentConversations );
+
+        return currentConversations;
+      });
     },
     [setConversations]
   );
@@ -113,8 +127,8 @@ const Home = ({ user, logout }) => {
         setConversations((prev) => [...prev, newConvo]);
       }
 
-      setConversations((prev) =>
-        prev.map((convo) => {
+      setConversations((prev) => {
+        let currentConversations = prev.map((convo) => {
           if (convo.id === message.conversationId) {
             const convoCopy = { ...convo };
             convoCopy.messages = [...convoCopy.messages, message];
@@ -124,8 +138,12 @@ const Home = ({ user, logout }) => {
           } else {
             return convo;
           }
-        })
-      );
+        });
+
+        currentConversations = sortConversations(currentConversations);
+
+        return currentConversations;
+      });
     },
     [setConversations]
   );
