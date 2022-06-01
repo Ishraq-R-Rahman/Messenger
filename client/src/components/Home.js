@@ -79,7 +79,7 @@ const Home = ({ user, logout }) => {
   };
 
   /** This function sorts the current conversation state based on their last text */
-  const sortConversations = (convesationList) => {
+  const sortConversationsList = (convesationList) => {
     return convesationList.sort((a, b) => {
       return (
         new Date(b.messages[b.messages.length - 1].createdAt) -
@@ -91,7 +91,7 @@ const Home = ({ user, logout }) => {
   const addNewConvo = useCallback(
     (recipientId, message) => {
       setConversations((prev) => {
-        let currentConversations = prev.map((convo) => {
+        let conversationsListCopy = prev.map((convo) => {
           if (convo.otherUser.id === recipientId) {
             const convoCopy = { ...convo };
             convoCopy.messages = [...convoCopy.messages, message];
@@ -104,10 +104,9 @@ const Home = ({ user, logout }) => {
           }
         });
 
+        conversationsListCopy = sortConversationsList( conversationsListCopy );
 
-        currentConversations = sortConversations( currentConversations );
-
-        return currentConversations;
+        return conversationsListCopy;
       });
     },
     [setConversations]
@@ -125,25 +124,25 @@ const Home = ({ user, logout }) => {
         };
         newConvo.latestMessageText = message.text;
         setConversations((prev) => [...prev, newConvo]);
-      }
+      } else {
+        setConversations((prev) => {
+          let conversationsListCopy = prev.map((convo) => {
+            if (convo.id === message.conversationId) {
+              const convoCopy = { ...convo };
+              convoCopy.messages = [...convoCopy.messages, message];
+              convoCopy.latestMessageText = message.text;
 
-      setConversations((prev) => {
-        let currentConversations = prev.map((convo) => {
-          if (convo.id === message.conversationId) {
-            const convoCopy = { ...convo };
-            convoCopy.messages = [...convoCopy.messages, message];
-            convoCopy.latestMessageText = message.text;
+              return convoCopy;
+            } else {
+              return convo;
+            }
+          });
 
-            return convoCopy;
-          } else {
-            return convo;
-          }
+          conversationsListCopy = sortConversationsList(conversationsListCopy);
+
+          return conversationsListCopy;
         });
-
-        currentConversations = sortConversations(currentConversations);
-
-        return currentConversations;
-      });
+      }
     },
     [setConversations]
   );
@@ -214,6 +213,9 @@ const Home = ({ user, logout }) => {
     const fetchConversations = async () => {
       try {
         const { data } = await axios.get("/api/conversations");
+        data.forEach((user) => {
+          user.messages = user.messages.reverse(); // Reversing the order of messages so that texts appear in ascending order of time
+        });
         setConversations(data);
       } catch (error) {
         console.error(error);
