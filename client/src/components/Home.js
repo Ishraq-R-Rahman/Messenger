@@ -78,32 +78,21 @@ const Home = ({ user, logout }) => {
     }
   };
 
-  /** This function sorts the current conversation state based on their last text */
-  const sortConversationsList = (convesationList) => {
-    return convesationList.sort((a, b) => {
-      return (
-        new Date(b.messages[b.messages.length - 1].createdAt) -
-        new Date(a.messages[a.messages.length - 1].createdAt)
-      );
-    });
-  };
-
   const addNewConvo = useCallback(
     (recipientId, message) => {
       setConversations((prev) => {
-        let conversationsListCopy = prev.map((convo) => {
+        const conversationsListCopy = [];
+        prev.forEach((convo) => {
           if (convo.otherUser.id === recipientId) {
             const convoCopy = { ...convo };
             convoCopy.messages = [...convoCopy.messages, message];
             convoCopy.latestMessageText = message.text;
             convoCopy.id = message.conversationId;
-
-            return convoCopy;
+            conversationsListCopy.unshift(convoCopy);
           } else {
-            return convo;
+            conversationsListCopy.push(convo);
           }
         });
-        conversationsListCopy = sortConversationsList( conversationsListCopy );
 
         return conversationsListCopy;
       });
@@ -122,24 +111,21 @@ const Home = ({ user, logout }) => {
           messages: [message],
         };
         newConvo.latestMessageText = message.text;
-        setConversations((prev) => [newConvo , ...prev]);
-
+        setConversations((prev) => [newConvo, ...prev]);
       } else {
         setConversations((prev) => {
-          let conversationsListCopy = prev.map((convo) => {
+          const conversationsListCopy = [];
+          prev.forEach((convo) => {
             if (convo.id === message.conversationId) {
               const convoCopy = { ...convo };
               convoCopy.messages = [...convoCopy.messages, message];
               convoCopy.latestMessageText = message.text;
-
-              return convoCopy;
+              conversationsListCopy.unshift(convoCopy);
             } else {
-              return convo;
+              conversationsListCopy.push(convo);
             }
           });
-
-          conversationsListCopy = sortConversationsList(conversationsListCopy);
-
+          
           return conversationsListCopy;
         });
       }
