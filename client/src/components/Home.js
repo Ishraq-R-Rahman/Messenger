@@ -103,7 +103,6 @@ const Home = ({ user, logout }) => {
             return convo;
           }
         });
-
         conversationsListCopy = sortConversationsList( conversationsListCopy );
 
         return conversationsListCopy;
@@ -123,7 +122,8 @@ const Home = ({ user, logout }) => {
           messages: [message],
         };
         newConvo.latestMessageText = message.text;
-        setConversations((prev) => [...prev, newConvo]);
+        setConversations((prev) => [newConvo , ...prev]);
+
       } else {
         setConversations((prev) => {
           let conversationsListCopy = prev.map((convo) => {
