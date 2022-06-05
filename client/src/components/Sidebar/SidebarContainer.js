@@ -7,8 +7,6 @@ const SidebarContainer = ({
   user,
   clearSearchedUsers,
   addSearchedUsers,
-  setActiveChat,
-  setActiveChatId,
   updateMessageReadStatus,
   viewChat
 }) => {
@@ -45,8 +43,6 @@ const SidebarContainer = ({
       searchTerm={searchTerm}
       conversations={conversations}
       user={user}
-      setActiveChat={setActiveChat}
-      setActiveChatId={setActiveChatId}
       updateMessageReadStatus={updateMessageReadStatus}
       viewChat={viewChat}
     />

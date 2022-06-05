@@ -23,8 +23,6 @@ const Sidebar = ({
   searchTerm,
   conversations = [],
   user,
-  setActiveChat,
-  setActiveChatId,
   updateMessageReadStatus,
   viewChat
 }) => {
@@ -44,8 +42,6 @@ const Sidebar = ({
             <Chat
               conversation={conversation}
               key={conversation.otherUser.username}
-              setActiveChat={setActiveChat}
-              setActiveChatId={setActiveChatId}
               updateMessageReadStatus={updateMessageReadStatus}
               viewChat={viewChat}
             />

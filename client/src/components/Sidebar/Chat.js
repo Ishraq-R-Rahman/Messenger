@@ -32,9 +32,6 @@ const useStyles = makeStyles((theme) => ({
 
 const Chat = ({
   conversation,
-  setActiveChat,
-  setActiveChatId,
-  updateMessageReadStatus,
   viewChat
 }) => {
   const classes = useStyles();

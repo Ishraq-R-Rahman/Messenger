@@ -80,24 +80,30 @@ const Home = ({ user, logout }) => {
     }
   };
 
-  const viewChat = async (conversation , unreadMessageCount ) => {
+  const viewChat = async (conversation, unreadMessageCount) => {
     await setActiveChat(conversation.otherUser.username);
     await setActiveChatId(conversation.id);
-    await updateMessageReadStatus({
-      conversationId: conversation.id,
-    }, unreadMessageCount );
-  }
+    await updateMessageReadStatus(
+      {
+        conversationId: conversation.id,
+      },
+      unreadMessageCount
+    );
+  };
 
-  const saveReadMessageStatus = (conversationId , selfCheck ) => {
+  const saveReadMessageStatus = (conversationId, selfCheck) => {
     setConversations((prev) =>
       prev.map((conversation) => {
-        const conversationCopy = {...conversation};
+        const conversationCopy = { ...conversation };
         if (conversationCopy?.id === conversationId) {
           const conversationMessagesCopy = [...conversationCopy?.messages];
           _.forEach(conversationMessagesCopy, (message) => {
-            if (selfCheck && message.senderId === conversationCopy?.otherUser.id)
+            if (
+              selfCheck &&
+              message.senderId === conversationCopy?.otherUser.id
+            )
               message.read = true;
-            else if( !selfCheck && message.senderId === user.id)
+            else if (!selfCheck && message.senderId === user.id)
               message.read = true;
           });
           conversationCopy.messages = conversationMessagesCopy;
@@ -110,7 +116,8 @@ const Home = ({ user, logout }) => {
 
   const updateMessageReadStatus = async (body, unreadMessageCount) => {
     try {
-      if (unreadMessageCount > 0) saveReadMessageStatus(body.conversationId , true );
+      if (unreadMessageCount > 0)
+        saveReadMessageStatus(body.conversationId, true);
 
       await axios.put("/api/messages", body);
 
@@ -124,7 +131,8 @@ const Home = ({ user, logout }) => {
   };
 
   const userCurrentlyActive = useCallback((data) => {
-    if (data.unreadMessageCount > 0) saveReadMessageStatus(data.conversationId , false);
+    if (data.unreadMessageCount > 0)
+      saveReadMessageStatus(data.conversationId, false);
   }, []);
 
   const addNewConvo = useCallback(
@@ -178,6 +186,8 @@ const Home = ({ user, logout }) => {
           return conversationsListCopy;
         });
       }
+      console.log("Not");
+      console.log(activeConversationId);
     },
     [setConversations]
   );
@@ -242,6 +252,11 @@ const Home = ({ user, logout }) => {
     userCurrentlyActive,
     socket,
   ]);
+
+  useEffect(() => {
+    console.log("Should");
+    console.log(activeConversationId);
+  }, [activeConversationId]);
 
   useEffect(() => {
     // when fetching, prevent redirect
