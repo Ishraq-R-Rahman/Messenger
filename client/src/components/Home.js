@@ -98,6 +98,20 @@ const Home = ({ user, logout }) => {
     );
   };
 
+  const checkIfBothActive = (message , newConvo = false) => {
+    if( newConvo )
+      setActiveChatId(message.conversationId);
+
+    if (activeConversationIdRef.current === message.conversationId) {
+      updateMessageReadStatus(
+        {
+          conversationId: message.conversationId,
+        },
+        1
+      );
+    }
+  }
+
   const saveReadMessageStatus = (conversationId, selfCheck) => {
     setConversations((prev) =>
       prev.map((conversation) => {
@@ -160,6 +174,8 @@ const Home = ({ user, logout }) => {
 
         return conversationsListCopy;
       });
+
+      checkIfBothActive(message , true);
     },
     [setConversations]
   );
@@ -194,14 +210,7 @@ const Home = ({ user, logout }) => {
         });
       }
 
-      if (activeConversationIdRef.current === message.conversationId) {
-        updateMessageReadStatus(
-          {
-            conversationId: message.conversationId,
-          },
-          1
-        );
-      }
+      checkIfBothActive(message);
     },
     [setConversations]
   );
