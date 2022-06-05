@@ -80,13 +80,16 @@ const Home = ({ user, logout }) => {
     }
   };
 
-  const saveReadMessageStatus = (conversationId) => {
+  const saveReadMessageStatus = (conversationId , selfCheck ) => {
     setConversations((prev) =>
       prev.map((conversation) => {
         if (conversation?.id === conversationId) {
           const conversationMessagesCopy = [...conversation?.messages];
           _.forEach(conversationMessagesCopy, (message) => {
-            message.read = true;
+            if (selfCheck && message.senderId === conversation?.otherUser.id)
+              message.read = true;
+            else if( !selfCheck && message.senderId === user.id)
+              message.read = true;
           });
           conversation.messages = conversationMessagesCopy;
         }
@@ -98,13 +101,22 @@ const Home = ({ user, logout }) => {
 
   const updateMessageReadStatus = async (body, unreadMessageCount) => {
     try {
-      if (unreadMessageCount > 0) saveReadMessageStatus(body.conversationId);
+      if (unreadMessageCount > 0) saveReadMessageStatus(body.conversationId , true );
 
       await axios.put("/api/messages", body);
+
+      socket.emit("active-chat", {
+        conversationId: body.conversationId,
+        unreadMessageCount,
+      });
     } catch (error) {
       console.error(error);
     }
   };
+
+  const userCurrentlyActive = useCallback((data) => {
+    if (data.unreadMessageCount > 0) saveReadMessageStatus(data.conversationId , false);
+  }, []);
 
   const addNewConvo = useCallback(
     (recipientId, message) => {
@@ -204,6 +216,7 @@ const Home = ({ user, logout }) => {
     socket.on("add-online-user", addOnlineUser);
     socket.on("remove-offline-user", removeOfflineUser);
     socket.on("new-message", addMessageToConversation);
+    socket.on("active-chat", userCurrentlyActive);
 
     return () => {
       // before the component is destroyed
@@ -211,8 +224,15 @@ const Home = ({ user, logout }) => {
       socket.off("add-online-user", addOnlineUser);
       socket.off("remove-offline-user", removeOfflineUser);
       socket.off("new-message", addMessageToConversation);
+      socket.off("active-chat", userCurrentlyActive);
     };
-  }, [addMessageToConversation, addOnlineUser, removeOfflineUser, socket]);
+  }, [
+    addMessageToConversation,
+    addOnlineUser,
+    removeOfflineUser,
+    userCurrentlyActive,
+    socket,
+  ]);
 
   useEffect(() => {
     // when fetching, prevent redirect

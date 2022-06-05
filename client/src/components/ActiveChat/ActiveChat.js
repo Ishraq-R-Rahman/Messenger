@@ -2,6 +2,7 @@ import React from "react";
 import { makeStyles } from "@material-ui/core/styles";
 import { Box } from "@material-ui/core";
 import { Input, Header, Messages } from "./index";
+import _ from "lodash";
 
 const useStyles = makeStyles(() => ({
   root: {
@@ -37,6 +38,14 @@ const ActiveChat = ({
     return obj !== {} && obj !== undefined;
   };
 
+  const findLastSeenText = (conversation) => {
+    return _.findLast(
+      conversation?.messages,
+      (message) =>
+        (message.senderId === user.id && message.read) || (message.senderId === conversation?.otherUser.id)
+    );
+  };
+
   return (
     <Box className={classes.root}>
       {isConversation(conversation) && conversation.otherUser && (
@@ -52,6 +61,7 @@ const ActiveChat = ({
                   messages={conversation.messages}
                   otherUser={conversation.otherUser}
                   userId={user.id}
+                  lastSeenText={findLastSeenText(conversation)}
                 />
                 <Input
                   otherUser={conversation.otherUser}
