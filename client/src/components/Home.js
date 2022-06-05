@@ -80,6 +80,14 @@ const Home = ({ user, logout }) => {
     }
   };
 
+  const viewChat = async (conversation , unreadMessageCount ) => {
+    await setActiveChat(conversation.otherUser.username);
+    await setActiveChatId(conversation.id);
+    await updateMessageReadStatus({
+      conversationId: conversation.id,
+    }, unreadMessageCount );
+  }
+
   const saveReadMessageStatus = (conversationId , selfCheck ) => {
     setConversations((prev) =>
       prev.map((conversation) => {
@@ -284,6 +292,7 @@ const Home = ({ user, logout }) => {
           setActiveChat={setActiveChat}
           setActiveChatId={setActiveChatId}
           updateMessageReadStatus={updateMessageReadStatus}
+          viewChat={viewChat}
         />
         <ActiveChat
           activeConversation={activeConversation}
