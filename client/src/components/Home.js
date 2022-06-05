@@ -1,4 +1,10 @@
-import React, { useCallback, useEffect, useState, useContext } from "react";
+import React, {
+  useCallback,
+  useEffect,
+  useState,
+  useContext,
+  useRef,
+} from "react";
 import axios from "axios";
 import { useHistory } from "react-router-dom";
 import { Grid, CssBaseline, Button } from "@material-ui/core";
@@ -23,6 +29,7 @@ const Home = ({ user, logout }) => {
   const [conversations, setConversations] = useState([]);
   const [activeConversation, setActiveConversation] = useState(null);
   const [activeConversationId, setActiveConversationId] = useState(null);
+  const activeConversationIdRef = useRef(activeConversationId);
 
   const classes = useStyles();
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -186,8 +193,15 @@ const Home = ({ user, logout }) => {
           return conversationsListCopy;
         });
       }
-      console.log("Not");
-      console.log(activeConversationId);
+
+      if (activeConversationIdRef.current === message.conversationId) {
+        updateMessageReadStatus(
+          {
+            conversationId: message.conversationId,
+          },
+          1
+        );
+      }
     },
     [setConversations]
   );
@@ -254,11 +268,6 @@ const Home = ({ user, logout }) => {
   ]);
 
   useEffect(() => {
-    console.log("Should");
-    console.log(activeConversationId);
-  }, [activeConversationId]);
-
-  useEffect(() => {
     // when fetching, prevent redirect
     if (user?.isFetching) return;
 
@@ -287,6 +296,10 @@ const Home = ({ user, logout }) => {
       fetchConversations();
     }
   }, [user]);
+
+  useEffect(() => {
+    activeConversationIdRef.current = activeConversationId;
+  }, [activeConversationId]);
 
   const handleLogout = async () => {
     if (user && user.id) {
