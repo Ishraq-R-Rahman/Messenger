@@ -21,6 +21,7 @@ const Home = ({ user, logout }) => {
 
   const [conversations, setConversations] = useState([]);
   const [activeConversation, setActiveConversation] = useState(null);
+  const [activeConversationId , setActiveConversationId ] = useState(null);
 
   const classes = useStyles();
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -77,6 +78,14 @@ const Home = ({ user, logout }) => {
       console.error(error);
     }
   };
+
+  const updateMessageReadStatus = async (body) => {
+    try {
+      await axios.put("/api/messages", body);
+    }catch( error ){
+      console.error(error)
+    }
+  }
 
   const addNewConvo = useCallback(
     (recipientId, message) => {
@@ -136,6 +145,10 @@ const Home = ({ user, logout }) => {
   const setActiveChat = (username) => {
     setActiveConversation(username);
   };
+
+  const setActiveChatId = (conversationId) => {
+    setActiveConversationId(conversationId);
+  }
 
   const addOnlineUser = useCallback((id) => {
     setConversations((prev) =>
@@ -229,6 +242,8 @@ const Home = ({ user, logout }) => {
           clearSearchedUsers={clearSearchedUsers}
           addSearchedUsers={addSearchedUsers}
           setActiveChat={setActiveChat}
+          setActiveChatId={setActiveChatId}
+          updateMessageReadStatus={updateMessageReadStatus}
         />
         <ActiveChat
           activeConversation={activeConversation}
