@@ -89,7 +89,6 @@ const Home = ({ user, logout }) => {
             message.read = true;
           });
           conversation.messages = conversationMessagesCopy;
-          console.log(conversation.messages);
         }
 
         return conversation;
