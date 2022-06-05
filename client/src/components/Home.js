@@ -98,6 +98,7 @@ const Home = ({ user, logout }) => {
     );
   };
 
+  /** This function checks if both user has the chat active for each other */
   const checkIfBothActive = (message , newConvo = false) => {
     if( newConvo )
       setActiveChatId(message.conversationId);
@@ -112,6 +113,9 @@ const Home = ({ user, logout }) => {
     }
   }
 
+  /** This function sets the read status for appropriate messages for a user
+   * selfCheck allows the function update read status either for themselves or for the other user
+   */
   const saveReadMessageStatus = (conversationId, selfCheck) => {
     setConversations((prev) =>
       prev.map((conversation) => {
@@ -151,6 +155,7 @@ const Home = ({ user, logout }) => {
     }
   };
 
+  /** This function runs if the user is currently active in the conversation */
   const userCurrentlyActive = useCallback((data) => {
     if (data.unreadMessageCount > 0)
       saveReadMessageStatus(data.conversationId, false);
