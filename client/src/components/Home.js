@@ -83,18 +83,19 @@ const Home = ({ user, logout }) => {
   const saveReadMessageStatus = (conversationId , selfCheck ) => {
     setConversations((prev) =>
       prev.map((conversation) => {
-        if (conversation?.id === conversationId) {
-          const conversationMessagesCopy = [...conversation?.messages];
+        const conversationCopy = {...conversation};
+        if (conversationCopy?.id === conversationId) {
+          const conversationMessagesCopy = [...conversationCopy?.messages];
           _.forEach(conversationMessagesCopy, (message) => {
-            if (selfCheck && message.senderId === conversation?.otherUser.id)
+            if (selfCheck && message.senderId === conversationCopy?.otherUser.id)
               message.read = true;
             else if( !selfCheck && message.senderId === user.id)
               message.read = true;
           });
-          conversation.messages = conversationMessagesCopy;
+          conversationCopy.messages = conversationMessagesCopy;
         }
 
-        return conversation;
+        return conversationCopy;
       })
     );
   };
