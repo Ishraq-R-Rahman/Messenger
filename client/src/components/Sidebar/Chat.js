@@ -39,14 +39,6 @@ const Chat = ({
   const classes = useStyles();
   const { otherUser } = conversation;
 
-  const handleClick = async (conversation) => {
-    await setActiveChat(conversation.otherUser.username);
-    await setActiveChatId(conversation.id);
-    await updateMessageReadStatus({
-      conversationId: conversation.id,
-    });
-  };
-
   const countUnreadMessages = (conversation) => {
     return _.countBy(
       conversation?.messages,
@@ -56,6 +48,14 @@ const Chat = ({
   };
 
   const unreadMessageCount = countUnreadMessages(conversation);
+
+  const handleClick = async (conversation) => {
+    await setActiveChat(conversation.otherUser.username);
+    await setActiveChatId(conversation.id);
+    await updateMessageReadStatus({
+      conversationId: conversation.id,
+    }, unreadMessageCount );
+  };
 
   return (
     <Box onClick={() => handleClick(conversation)} className={classes.root}>

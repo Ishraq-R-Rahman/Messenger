@@ -3,6 +3,7 @@ import axios from "axios";
 import { useHistory } from "react-router-dom";
 import { Grid, CssBaseline, Button } from "@material-ui/core";
 import { makeStyles } from "@material-ui/core/styles";
+import _ from "lodash";
 
 import { SidebarContainer } from "../components/Sidebar";
 import { ActiveChat } from "../components/ActiveChat";
@@ -21,7 +22,7 @@ const Home = ({ user, logout }) => {
 
   const [conversations, setConversations] = useState([]);
   const [activeConversation, setActiveConversation] = useState(null);
-  const [activeConversationId , setActiveConversationId ] = useState(null);
+  const [activeConversationId, setActiveConversationId] = useState(null);
 
   const classes = useStyles();
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -79,13 +80,32 @@ const Home = ({ user, logout }) => {
     }
   };
 
-  const updateMessageReadStatus = async (body) => {
+  const saveReadMessageStatus = (conversationId) => {
+    setConversations((prev) =>
+      prev.map((conversation) => {
+        if (conversation?.id === conversationId) {
+          const conversationMessagesCopy = [...conversation?.messages];
+          _.forEach(conversationMessagesCopy, (message) => {
+            message.read = true;
+          });
+          conversation.messages = conversationMessagesCopy;
+          console.log(conversation.messages);
+        }
+
+        return conversation;
+      })
+    );
+  };
+
+  const updateMessageReadStatus = async (body, unreadMessageCount) => {
     try {
+      if (unreadMessageCount > 0) saveReadMessageStatus(body.conversationId);
+
       await axios.put("/api/messages", body);
-    }catch( error ){
-      console.error(error)
+    } catch (error) {
+      console.error(error);
     }
-  }
+  };
 
   const addNewConvo = useCallback(
     (recipientId, message) => {
@@ -134,7 +154,7 @@ const Home = ({ user, logout }) => {
               conversationsListCopy.push(convo);
             }
           });
-          
+
           return conversationsListCopy;
         });
       }
@@ -148,7 +168,7 @@ const Home = ({ user, logout }) => {
 
   const setActiveChatId = (conversationId) => {
     setActiveConversationId(conversationId);
-  }
+  };
 
   const addOnlineUser = useCallback((id) => {
     setConversations((prev) =>
