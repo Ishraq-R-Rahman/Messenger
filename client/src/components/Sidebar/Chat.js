@@ -1,8 +1,7 @@
 import React from "react";
-import { Box, Typography, Badge } from "@material-ui/core";
+import { Box, Badge } from "@material-ui/core";
 import { BadgeAvatar, ChatContent } from "../Sidebar";
 import { makeStyles } from "@material-ui/core/styles";
-import _ from "lodash";
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -26,7 +25,7 @@ const useStyles = makeStyles((theme) => ({
     marginRight: 20,
     fontSize: "10px",
     fontWeight: 700,
-    lineHeight: "14px"
+    lineHeight: "14px",
   },
   text: {
     fontSize: 10,
@@ -42,11 +41,11 @@ const Chat = ({ conversation, viewChat }) => {
   const { otherUser } = conversation;
 
   const countUnreadMessages = (conversation) => {
-    return _.countBy(
-      conversation?.messages,
-      (message) =>
-        message.senderId === conversation.otherUser.id && !message.read
-    ).true;
+    return conversation?.messages.reduce((prev, message) => {
+      if (message.senderId === conversation.otherUser.id && !message.read)
+        return prev + 1;
+      return prev;
+    }, 0);
   };
 
   const unreadMessageCount = countUnreadMessages(conversation);

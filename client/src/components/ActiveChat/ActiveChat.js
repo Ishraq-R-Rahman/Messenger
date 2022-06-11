@@ -2,7 +2,13 @@ import React from "react";
 import { makeStyles } from "@material-ui/core/styles";
 import { Box } from "@material-ui/core";
 import { Input, Header, Messages } from "./index";
-import _ from "lodash";
+
+const lastReadText = (array, func) => {
+  for (let i = array.length - 1; i >= 0; i--) {
+    if (func(array[i])) return array[i];
+  }
+  return;
+};
 
 const useStyles = makeStyles(() => ({
   root: {
@@ -39,10 +45,11 @@ const ActiveChat = ({
   };
 
   const findLastSeenText = (conversation) => {
-    return _.findLast(
+    return lastReadText(
       conversation?.messages,
       (message) =>
-        (message.senderId === user.id && message.read) || (message.senderId === conversation?.otherUser.id)
+        (message.senderId === user.id && message.read) ||
+        message.senderId === conversation?.otherUser.id
     );
   };
 

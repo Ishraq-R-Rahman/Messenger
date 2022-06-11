@@ -9,7 +9,6 @@ import axios from "axios";
 import { useHistory } from "react-router-dom";
 import { Grid, CssBaseline, Button } from "@material-ui/core";
 import { makeStyles } from "@material-ui/core/styles";
-import _ from "lodash";
 
 import { SidebarContainer } from "../components/Sidebar";
 import { ActiveChat } from "../components/ActiveChat";
@@ -122,7 +121,7 @@ const Home = ({ user, logout }) => {
         const conversationCopy = { ...conversation };
         if (conversationCopy?.id === conversationId) {
           const conversationMessagesCopy = [...conversationCopy?.messages];
-          _.forEach(conversationMessagesCopy, (message) => {
+          conversationMessagesCopy.forEach( (message) => {
             if (
               selfCheck &&
               message.senderId === conversationCopy?.otherUser.id
