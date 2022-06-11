@@ -1,5 +1,5 @@
 import React from "react";
-import { Box, Typography } from "@material-ui/core";
+import { Box, Typography, Badge } from "@material-ui/core";
 import { BadgeAvatar, ChatContent } from "../Sidebar";
 import { makeStyles } from "@material-ui/core/styles";
 import _ from "lodash";
@@ -21,6 +21,13 @@ const useStyles = makeStyles((theme) => ({
     borderRadius: "100px",
     marginRight: 10,
   },
+  unreadBubble: {
+    backgroundColor: "#3F92FF",
+    marginRight: 20,
+    fontSize: "10px",
+    fontWeight: 700,
+    lineHeight: "14px"
+  },
   text: {
     fontSize: 10,
     fontWeight: "bold",
@@ -30,10 +37,7 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-const Chat = ({
-  conversation,
-  viewChat
-}) => {
+const Chat = ({ conversation, viewChat }) => {
   const classes = useStyles();
   const { otherUser } = conversation;
 
@@ -63,13 +67,11 @@ const Chat = ({
         conversation={conversation}
         unreadMessageCount={unreadMessageCount}
       />
-      {unreadMessageCount > 0 ? (
-        <Box className={classes.bubble}>
-          <Typography className={classes.text}>{unreadMessageCount}</Typography>
-        </Box>
-      ) : (
-        <></>
-      )}
+      <Badge
+        badgeContent={unreadMessageCount}
+        color="primary"
+        classes={{ badge: classes.unreadBubble }}
+      />
     </Box>
   );
 };

@@ -15,13 +15,17 @@ const useStyles = makeStyles((theme) => ({
   },
   previewText: {
     fontSize: 12,
-    color: "#9CADC8",
+    color: (props) => (props.unreadMessageCount > 0 ? "black" : "#9CADC8"),
     letterSpacing: -0.17,
+    fontWeight: (props) => (props.unreadMessageCount > 0 ? 600 : "inherit"),
   },
+  highlightedText: (props) => ({}),
 }));
 
-const ChatContent = ({ conversation , unreadMessageCount }) => {
-  const classes = useStyles();
+const ChatContent = ({ conversation, unreadMessageCount }) => {
+  const classes = useStyles({
+    unreadMessageCount,
+  });
 
   const { otherUser } = conversation;
   const latestMessageText = conversation.id && conversation.latestMessageText;
@@ -32,11 +36,7 @@ const ChatContent = ({ conversation , unreadMessageCount }) => {
         <Typography className={classes.username}>
           {otherUser.username}
         </Typography>
-        <Typography className={classes.previewText} style={(unreadMessageCount > 0)? {
-          fontWeight: 'bolder',
-          fontSize: 13,
-          color: 'black'
-        }: {}}>
+        <Typography className={classes.previewText}>
           {latestMessageText}
         </Typography>
       </Box>
