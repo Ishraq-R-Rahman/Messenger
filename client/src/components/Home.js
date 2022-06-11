@@ -115,7 +115,7 @@ const Home = ({ user, logout }) => {
   /** This function sets the read status for appropriate messages for a user
    * selfCheck allows the function update read status either for themselves or for the other user
    */
-  const saveReadMessageStatus = (conversationId, selfCheck) => {
+  const saveReadMessageStatus = useCallback((conversationId, selfCheck) => {
     setConversations((prev) =>
       prev.map((conversation) => {
         const conversationCopy = { ...conversation };
@@ -136,7 +136,7 @@ const Home = ({ user, logout }) => {
         return conversationCopy;
       })
     );
-  };
+  },[user.id]);
 
   const updateMessageReadStatus = async (body, unreadMessageCount) => {
     try {
@@ -158,7 +158,7 @@ const Home = ({ user, logout }) => {
   const userCurrentlyActive = useCallback((data) => {
     if (data.unreadMessageCount > 0)
       saveReadMessageStatus(data.conversationId, false);
-  }, []);
+  }, [saveReadMessageStatus]);
 
   const addNewConvo = useCallback(
     (recipientId, message) => {

@@ -22,10 +22,8 @@ const Messages = (props) => {
                 otherUser={otherUser}
               />
             )}
-            {lastSeenText?.id === message.id ? (
-              <ReadBubble otherUser={otherUser}></ReadBubble>
-            ) : (
-              <></>
+            {lastSeenText?.id === message.id && (
+              <ReadBubble otherUser={otherUser} />
             )}
           </>
         );
