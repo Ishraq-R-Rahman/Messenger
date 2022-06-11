@@ -97,21 +97,6 @@ const Home = ({ user, logout }) => {
     );
   };
 
-  /** This function checks if both user has the chat active for each other */
-  const checkIfBothActive = (message , newConvo = false) => {
-    if( newConvo )
-      setActiveChatId(message.conversationId);
-
-    if (activeConversationIdRef.current === message.conversationId) {
-      updateMessageReadStatus(
-        {
-          conversationId: message.conversationId,
-        },
-        1
-      );
-    }
-  }
-
   /** This function sets the read status for appropriate messages for a user
    * selfCheck allows the function update read status either for themselves or for the other user
    */
@@ -138,7 +123,7 @@ const Home = ({ user, logout }) => {
     );
   },[user.id]);
 
-  const updateMessageReadStatus = async (body, unreadMessageCount) => {
+  const updateMessageReadStatus = useCallback(async (body, unreadMessageCount) => {
     try {
       if (unreadMessageCount > 0)
         saveReadMessageStatus(body.conversationId, true);
@@ -152,7 +137,22 @@ const Home = ({ user, logout }) => {
     } catch (error) {
       console.error(error);
     }
-  };
+  },[saveReadMessageStatus, socket]);
+
+  /** This function checks if both user has the chat active for each other */
+  const checkIfBothActive = useCallback((message , newConvo = false) => {
+    if( newConvo )
+      setActiveChatId(message.conversationId);
+
+    if (activeConversationIdRef.current === message.conversationId) {
+      updateMessageReadStatus(
+        {
+          conversationId: message.conversationId,
+        },
+        1
+      );
+    }
+  },[updateMessageReadStatus])
 
   /** This function runs if the user is currently active in the conversation */
   const userCurrentlyActive = useCallback((data) => {
@@ -181,7 +181,7 @@ const Home = ({ user, logout }) => {
 
       checkIfBothActive(message , true);
     },
-    [setConversations]
+    [checkIfBothActive]
   );
 
   const addMessageToConversation = useCallback(
@@ -216,7 +216,7 @@ const Home = ({ user, logout }) => {
 
       checkIfBothActive(message);
     },
-    [setConversations]
+    [checkIfBothActive]
   );
 
   const setActiveChat = (username) => {
