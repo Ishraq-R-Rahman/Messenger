@@ -5,7 +5,6 @@ const Message = require("./message");
 const Conversation = db.define("conversation", {
   groupName: {
     type: Sequelize.STRING,
-    defaultValue: "private",
   }
 });
 

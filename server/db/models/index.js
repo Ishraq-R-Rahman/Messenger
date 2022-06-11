@@ -9,8 +9,6 @@ Conversation.belongsToMany(User, { through: "participants" });
 Message.belongsTo(Conversation);
 Conversation.hasMany(Message);
 
-Message.belongsToMany(User, { through: "read_messages" });
-User.belongsToMany(Message, { through: "read_messages" });
 
 module.exports = {
   User,
