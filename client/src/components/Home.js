@@ -144,7 +144,7 @@ const Home = ({ user, logout }) => {
       if (unreadMessageCount > 0)
         saveReadMessageStatus(body.conversationId, true);
 
-      await axios.put("/api/messages", body);
+      await axios.put("/api/messages/read-status", body);
 
       socket.emit("active-chat", {
         conversationId: body.conversationId,
