@@ -50,6 +50,13 @@ io.on("connection", (socket) => {
     });
   });
 
+  socket.on("active-chat", (data) => {
+    socket.broadcast.emit("active-chat",{
+      conversationId: data.conversationId,
+      unreadMessageCount: data.unreadMessageCount
+    });
+  });
+
   socket.on("logout", (id) => {
     if (onlineUsers.includes(id)) {
       userIndex = onlineUsers.indexOf(id);

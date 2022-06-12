@@ -3,6 +3,7 @@ import { makeStyles } from "@material-ui/core/styles";
 import { Box } from "@material-ui/core";
 import { Input, Header, Messages } from "./index";
 
+
 const useStyles = makeStyles(() => ({
   root: {
     display: "flex",
@@ -24,6 +25,7 @@ const ActiveChat = ({
   conversations,
   activeConversation,
   postMessage,
+  lastSeenText
 }) => {
   const classes = useStyles();
 
@@ -52,6 +54,7 @@ const ActiveChat = ({
                   messages={conversation.messages}
                   otherUser={conversation.otherUser}
                   userId={user.id}
+                  lastSeenText={lastSeenText}
                 />
                 <Input
                   otherUser={conversation.otherUser}

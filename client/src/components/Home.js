@@ -1,4 +1,10 @@
-import React, { useCallback, useEffect, useState, useContext } from "react";
+import React, {
+  useCallback,
+  useEffect,
+  useState,
+  useContext,
+  useRef,
+} from "react";
 import axios from "axios";
 import { useHistory } from "react-router-dom";
 import { Grid, CssBaseline, Button } from "@material-ui/core";
@@ -21,6 +27,9 @@ const Home = ({ user, logout }) => {
 
   const [conversations, setConversations] = useState([]);
   const [activeConversation, setActiveConversation] = useState(null);
+  const [activeConversationId, setActiveConversationId] = useState(null);
+  const [lastSeenText, setLastSeenText] = useState(null);
+  const activeConversationIdRef = useRef(activeConversationId);
 
   const classes = useStyles();
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -78,6 +87,91 @@ const Home = ({ user, logout }) => {
     }
   };
 
+  const viewChat = async (conversation, unreadMessageCount) => {
+    await setActiveChat(conversation.otherUser.username);
+    await setActiveChatId(conversation.id);
+    await updateMessageReadStatus(
+      {
+        conversationId: conversation.id,
+      },
+      unreadMessageCount
+    );
+  };
+
+  /** This function sets the read status for appropriate messages for a user
+   * selfCheck allows the function update read status either for themselves or for the other user
+   */
+  const saveReadMessageStatus = useCallback(
+    (conversationId, selfCheck) => {
+      setConversations((prev) =>
+        prev.map((conversation) => {
+          const conversationCopy = { ...conversation };
+          if (conversationCopy?.id === conversationId) {
+            const conversationMessagesCopy = [...conversationCopy?.messages];
+            conversationMessagesCopy.forEach((message) => {
+              if (
+                selfCheck &&
+                message.senderId === conversationCopy?.otherUser.id
+              )
+                message.read = true;
+              else if (!selfCheck && message.senderId === user.id)
+                message.read = true;
+            });
+            conversationCopy.messages = conversationMessagesCopy;
+          }
+
+          return conversationCopy;
+        })
+      );
+    },
+    [user.id]
+  );
+
+  const updateMessageReadStatus = useCallback(
+    async (body, unreadMessageCount) => {
+      try {
+        if (unreadMessageCount > 0)
+          saveReadMessageStatus(body.conversationId, true);
+
+        await axios.put("/api/messages/read-status", body);
+
+        socket.emit("active-chat", {
+          conversationId: body.conversationId,
+          unreadMessageCount,
+        });
+      } catch (error) {
+        console.error(error);
+      }
+    },
+    [saveReadMessageStatus, socket]
+  );
+
+  /** This function checks if both user has the chat active for each other */
+  const checkIfBothActive = useCallback(
+    (message, newConvo = false) => {
+      if (newConvo) setActiveChatId(message.conversationId);
+
+      if (activeConversationIdRef.current === message.conversationId) {
+        updateMessageReadStatus(
+          {
+            conversationId: message.conversationId,
+          },
+          1
+        );
+      }
+    },
+    [updateMessageReadStatus]
+  );
+
+  /** This function runs if the user is currently active in the conversation */
+  const userCurrentlyActive = useCallback(
+    (data) => {
+      if (data.unreadMessageCount > 0)
+        saveReadMessageStatus(data.conversationId, false);
+    },
+    [saveReadMessageStatus]
+  );
+
   const addNewConvo = useCallback(
     (recipientId, message) => {
       setConversations((prev) => {
@@ -96,8 +190,10 @@ const Home = ({ user, logout }) => {
 
         return conversationsListCopy;
       });
+
+      checkIfBothActive(message, true);
     },
-    [setConversations]
+    [checkIfBothActive]
   );
 
   const addMessageToConversation = useCallback(
@@ -125,16 +221,22 @@ const Home = ({ user, logout }) => {
               conversationsListCopy.push(convo);
             }
           });
-          
+
           return conversationsListCopy;
         });
       }
+
+      checkIfBothActive(message);
     },
-    [setConversations]
+    [checkIfBothActive]
   );
 
   const setActiveChat = (username) => {
     setActiveConversation(username);
+  };
+
+  const setActiveChatId = (conversationId) => {
+    setActiveConversationId(conversationId);
   };
 
   const addOnlineUser = useCallback((id) => {
@@ -165,6 +267,29 @@ const Home = ({ user, logout }) => {
     );
   }, []);
 
+  /** This function finds the last read text in a conversation */
+  const findLastSeenText = useCallback(() => {
+    const conversation = conversations
+      ? conversations.find(
+          (conversation) =>
+            conversation.otherUser.username === activeConversation
+        )
+      : {};
+
+    const messages = conversation?.messages;
+    if (!messages) return;
+
+    for (let i = messages.length - 1; i >= 0; i--) {
+      if (
+        (messages[i].senderId === user.id && messages[i].read) ||
+        messages[i].senderId === conversation?.otherUser.id
+      ){
+        return messages[i];
+      }
+    }
+    return;
+  },[activeConversation, conversations, user.id]);
+
   // Lifecycle
 
   useEffect(() => {
@@ -172,6 +297,7 @@ const Home = ({ user, logout }) => {
     socket.on("add-online-user", addOnlineUser);
     socket.on("remove-offline-user", removeOfflineUser);
     socket.on("new-message", addMessageToConversation);
+    socket.on("active-chat", userCurrentlyActive);
 
     return () => {
       // before the component is destroyed
@@ -179,8 +305,15 @@ const Home = ({ user, logout }) => {
       socket.off("add-online-user", addOnlineUser);
       socket.off("remove-offline-user", removeOfflineUser);
       socket.off("new-message", addMessageToConversation);
+      socket.off("active-chat", userCurrentlyActive);
     };
-  }, [addMessageToConversation, addOnlineUser, removeOfflineUser, socket]);
+  }, [
+    addMessageToConversation,
+    addOnlineUser,
+    removeOfflineUser,
+    userCurrentlyActive,
+    socket,
+  ]);
 
   useEffect(() => {
     // when fetching, prevent redirect
@@ -212,6 +345,14 @@ const Home = ({ user, logout }) => {
     }
   }, [user]);
 
+  useEffect(() => {
+    activeConversationIdRef.current = activeConversationId;
+  }, [activeConversationId]);
+
+  useEffect(()=> {
+    setLastSeenText(findLastSeenText());
+  },[conversations, findLastSeenText])
+
   const handleLogout = async () => {
     if (user && user.id) {
       await logout(user.id);
@@ -229,12 +370,16 @@ const Home = ({ user, logout }) => {
           clearSearchedUsers={clearSearchedUsers}
           addSearchedUsers={addSearchedUsers}
           setActiveChat={setActiveChat}
+          setActiveChatId={setActiveChatId}
+          updateMessageReadStatus={updateMessageReadStatus}
+          viewChat={viewChat}
         />
         <ActiveChat
           activeConversation={activeConversation}
           conversations={conversations}
           user={user}
           postMessage={postMessage}
+          lastSeenText={lastSeenText}
         />
       </Grid>
     </>
