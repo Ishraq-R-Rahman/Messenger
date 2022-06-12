@@ -28,6 +28,7 @@ const Home = ({ user, logout }) => {
   const [conversations, setConversations] = useState([]);
   const [activeConversation, setActiveConversation] = useState(null);
   const [activeConversationId, setActiveConversationId] = useState(null);
+  const [lastSeenText, setLastSeenText] = useState(null);
   const activeConversationIdRef = useRef(activeConversationId);
 
   const classes = useStyles();
@@ -100,65 +101,76 @@ const Home = ({ user, logout }) => {
   /** This function sets the read status for appropriate messages for a user
    * selfCheck allows the function update read status either for themselves or for the other user
    */
-  const saveReadMessageStatus = useCallback((conversationId, selfCheck) => {
-    setConversations((prev) =>
-      prev.map((conversation) => {
-        const conversationCopy = { ...conversation };
-        if (conversationCopy?.id === conversationId) {
-          const conversationMessagesCopy = [...conversationCopy?.messages];
-          conversationMessagesCopy.forEach( (message) => {
-            if (
-              selfCheck &&
-              message.senderId === conversationCopy?.otherUser.id
-            )
-              message.read = true;
-            else if (!selfCheck && message.senderId === user.id)
-              message.read = true;
-          });
-          conversationCopy.messages = conversationMessagesCopy;
-        }
+  const saveReadMessageStatus = useCallback(
+    (conversationId, selfCheck) => {
+      setConversations((prev) =>
+        prev.map((conversation) => {
+          const conversationCopy = { ...conversation };
+          if (conversationCopy?.id === conversationId) {
+            const conversationMessagesCopy = [...conversationCopy?.messages];
+            conversationMessagesCopy.forEach((message) => {
+              if (
+                selfCheck &&
+                message.senderId === conversationCopy?.otherUser.id
+              )
+                message.read = true;
+              else if (!selfCheck && message.senderId === user.id)
+                message.read = true;
+            });
+            conversationCopy.messages = conversationMessagesCopy;
+          }
 
-        return conversationCopy;
-      })
-    );
-  },[user.id]);
+          return conversationCopy;
+        })
+      );
+    },
+    [user.id]
+  );
 
-  const updateMessageReadStatus = useCallback(async (body, unreadMessageCount) => {
-    try {
-      if (unreadMessageCount > 0)
-        saveReadMessageStatus(body.conversationId, true);
+  const updateMessageReadStatus = useCallback(
+    async (body, unreadMessageCount) => {
+      try {
+        if (unreadMessageCount > 0)
+          saveReadMessageStatus(body.conversationId, true);
 
-      await axios.put("/api/messages/read-status", body);
+        await axios.put("/api/messages/read-status", body);
 
-      socket.emit("active-chat", {
-        conversationId: body.conversationId,
-        unreadMessageCount,
-      });
-    } catch (error) {
-      console.error(error);
-    }
-  },[saveReadMessageStatus, socket]);
+        socket.emit("active-chat", {
+          conversationId: body.conversationId,
+          unreadMessageCount,
+        });
+      } catch (error) {
+        console.error(error);
+      }
+    },
+    [saveReadMessageStatus, socket]
+  );
 
   /** This function checks if both user has the chat active for each other */
-  const checkIfBothActive = useCallback((message , newConvo = false) => {
-    if( newConvo )
-      setActiveChatId(message.conversationId);
+  const checkIfBothActive = useCallback(
+    (message, newConvo = false) => {
+      if (newConvo) setActiveChatId(message.conversationId);
 
-    if (activeConversationIdRef.current === message.conversationId) {
-      updateMessageReadStatus(
-        {
-          conversationId: message.conversationId,
-        },
-        1
-      );
-    }
-  },[updateMessageReadStatus])
+      if (activeConversationIdRef.current === message.conversationId) {
+        updateMessageReadStatus(
+          {
+            conversationId: message.conversationId,
+          },
+          1
+        );
+      }
+    },
+    [updateMessageReadStatus]
+  );
 
   /** This function runs if the user is currently active in the conversation */
-  const userCurrentlyActive = useCallback((data) => {
-    if (data.unreadMessageCount > 0)
-      saveReadMessageStatus(data.conversationId, false);
-  }, [saveReadMessageStatus]);
+  const userCurrentlyActive = useCallback(
+    (data) => {
+      if (data.unreadMessageCount > 0)
+        saveReadMessageStatus(data.conversationId, false);
+    },
+    [saveReadMessageStatus]
+  );
 
   const addNewConvo = useCallback(
     (recipientId, message) => {
@@ -179,7 +191,7 @@ const Home = ({ user, logout }) => {
         return conversationsListCopy;
       });
 
-      checkIfBothActive(message , true);
+      checkIfBothActive(message, true);
     },
     [checkIfBothActive]
   );
@@ -255,6 +267,29 @@ const Home = ({ user, logout }) => {
     );
   }, []);
 
+  /** This function finds the last read text in a conversation */
+  const findLastSeenText = useCallback(() => {
+    const conversation = conversations
+      ? conversations.find(
+          (conversation) =>
+            conversation.otherUser.username === activeConversation
+        )
+      : {};
+
+    const messages = conversation?.messages;
+    if (!messages) return;
+
+    for (let i = messages.length - 1; i >= 0; i--) {
+      if (
+        (messages[i].senderId === user.id && messages[i].read) ||
+        messages[i].senderId === conversation?.otherUser.id
+      ){
+        return messages[i];
+      }
+    }
+    return;
+  },[activeConversation, conversations, user.id]);
+
   // Lifecycle
 
   useEffect(() => {
@@ -314,6 +349,10 @@ const Home = ({ user, logout }) => {
     activeConversationIdRef.current = activeConversationId;
   }, [activeConversationId]);
 
+  useEffect(()=> {
+    setLastSeenText(findLastSeenText());
+  },[conversations, findLastSeenText])
+
   const handleLogout = async () => {
     if (user && user.id) {
       await logout(user.id);
@@ -340,6 +379,7 @@ const Home = ({ user, logout }) => {
           conversations={conversations}
           user={user}
           postMessage={postMessage}
+          lastSeenText={lastSeenText}
         />
       </Grid>
     </>

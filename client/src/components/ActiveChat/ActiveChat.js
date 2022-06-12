@@ -3,12 +3,6 @@ import { makeStyles } from "@material-ui/core/styles";
 import { Box } from "@material-ui/core";
 import { Input, Header, Messages } from "./index";
 
-const lastReadText = (array, func) => {
-  for (let i = array.length - 1; i >= 0; i--) {
-    if (func(array[i])) return array[i];
-  }
-  return;
-};
 
 const useStyles = makeStyles(() => ({
   root: {
@@ -31,6 +25,7 @@ const ActiveChat = ({
   conversations,
   activeConversation,
   postMessage,
+  lastSeenText
 }) => {
   const classes = useStyles();
 
@@ -42,15 +37,6 @@ const ActiveChat = ({
 
   const isConversation = (obj) => {
     return obj !== {} && obj !== undefined;
-  };
-
-  const findLastSeenText = (conversation) => {
-    return lastReadText(
-      conversation?.messages,
-      (message) =>
-        (message.senderId === user.id && message.read) ||
-        message.senderId === conversation?.otherUser.id
-    );
   };
 
   return (
@@ -68,7 +54,7 @@ const ActiveChat = ({
                   messages={conversation.messages}
                   otherUser={conversation.otherUser}
                   userId={user.id}
-                  lastSeenText={findLastSeenText(conversation)}
+                  lastSeenText={lastSeenText}
                 />
                 <Input
                   otherUser={conversation.otherUser}
